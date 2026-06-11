@@ -24,6 +24,9 @@ seeds:
     raw_customers:
       +column_types:
         home_store_id: int64
+    raw_web_sessions:
+      +column_types:
+        customer_id: int64
 
 models:
   greenfield_retail:
