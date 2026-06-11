@@ -1,0 +1,123 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Cleaned customer records: standardized email, typed keys, and an email-validity flag."
+    columns:
+      - name: customer_id
+        description: "Primary key for a customer."
+        data_tests:
+          - unique
+          - not_null
+      - name: email
+        description: "Lower-cased customer email address."
+      - name: has_valid_email
+        description: "True when the email matches a basic RFC-style pattern."
+      - name: region
+        description: "Sales region: NA, EMEA, or APAC."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["NA", "EMEA", "APAC"]
+
+  - name: stg_stores
+    description: "Store dimension source: location and open date."
+    columns:
+      - name: store_id
+        description: "Primary key for a store."
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_product_categories
+    description: "Product category reference with parent department."
+    columns:
+      - name: category_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_products
+    description: "Product catalog with cost and list price in both cents and dollars."
+    columns:
+      - name: product_id
+        data_tests:
+          - unique
+          - not_null
+      - name: category_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_product_categories')
+                field: category_id
+
+  - name: stg_orders
+    description: "Order headers with typed timestamps and channel/status flags."
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["completed", "returned", "cancelled", "pending"]
+      - name: order_channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["web", "store", "mobile_app"]
+
+  - name: stg_order_items
+    description: "Order line items with computed gross line amount."
+    columns:
+      - name: order_item_id
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+
+  - name: stg_payments
+    description: "Payment captures and refunds against orders."
+    columns:
+      - name: payment_id
+        data_tests:
+          - unique
+          - not_null
+      - name: payment_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["captured", "refunded"]
+
+  - name: stg_inventory_snapshots
+    description: "Monthly inventory position per store and product."
+    columns:
+      - name: units_available
+        description: "On-hand units minus reserved units."
+
+  - name: stg_web_sessions
+    description: "Web/app sessions with derived duration and identification flag."
+    columns:
+      - name: session_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_marketing_spend
+    description: "Daily paid-media spend, impressions, and clicks by channel and campaign."
+    columns:
+      - name: spend_amount
+        description: "Daily spend in dollars."

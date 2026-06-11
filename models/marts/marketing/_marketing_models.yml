@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: fct_web_sessions
+    description: "One row per web/app session with same-day conversion flag."
+    columns:
+      - name: session_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: fct_marketing_spend
+    description: "Daily marketing spend by channel/campaign with CTR and CPC."
+    columns:
+      - name: spend_date
+        data_tests:
+          - not_null
+
+  - name: mart_marketing_attribution
+    description: "Spend joined to sessions and same-day conversions by date, source, and campaign."
+    columns:
+      - name: cost_per_conversion
+        description: "Spend divided by same-day conversions; null when there were no conversions."

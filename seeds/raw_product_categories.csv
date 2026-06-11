@@ -1,0 +1,16 @@
+category_id,category_name,department
+1,T-Shirts,Apparel
+2,Jeans,Apparel
+3,Outerwear,Apparel
+4,Footwear,Apparel
+5,Accessories,Apparel
+6,Kitchen,Home
+7,Bedding,Home
+8,Decor,Home
+9,Furniture,Home
+10,Audio,Electronics
+11,Wearables,Electronics
+12,Smart Home,Electronics
+13,Camping,Outdoor
+14,Cycling,Outdoor
+15,Fitness,Outdoor

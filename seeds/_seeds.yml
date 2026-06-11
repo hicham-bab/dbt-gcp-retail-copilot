@@ -1,0 +1,26 @@
+version: 2
+
+seeds:
+  - name: raw_customers
+    description: "Seeded raw customer master. Acts as the landing/raw layer for the demo."
+  - name: raw_stores
+    description: "Seeded raw store locations."
+  - name: raw_product_categories
+    description: "Seeded raw product categories and departments."
+  - name: raw_products
+    description: "Seeded raw product catalog (prices in cents)."
+    config:
+      column_types:
+        is_active: boolean
+  - name: raw_orders
+    description: "Seeded raw order headers."
+  - name: raw_order_items
+    description: "Seeded raw order line items."
+  - name: raw_payments
+    description: "Seeded raw payments."
+  - name: raw_inventory_snapshots
+    description: "Seeded raw monthly inventory snapshots."
+  - name: raw_web_sessions
+    description: "Seeded raw web/app clickstream sessions."
+  - name: raw_marketing_spend
+    description: "Seeded raw daily marketing spend."

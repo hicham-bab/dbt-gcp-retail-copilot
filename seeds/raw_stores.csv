@@ -1,0 +1,21 @@
+store_id,store_name,region,country,opened_date
+1,GreenField #001,APAC,Australia,2020-08-16
+2,GreenField #002,NA,United States,2021-07-17
+3,GreenField #003,NA,Canada,2021-04-02
+4,GreenField #004,NA,Canada,2020-07-28
+5,GreenField #005,APAC,Australia,2023-01-21
+6,GreenField #006,NA,United States,2023-04-24
+7,GreenField #007,EMEA,Germany,2020-03-06
+8,GreenField #008,NA,United States,2020-07-10
+9,GreenField #009,NA,Canada,2021-04-21
+10,GreenField #010,EMEA,France,2023-05-17
+11,GreenField #011,NA,United States,2023-02-23
+12,GreenField #012,NA,Canada,2023-08-23
+13,GreenField #013,APAC,Australia,2023-01-21
+14,GreenField #014,EMEA,Germany,2021-03-27
+15,GreenField #015,EMEA,Germany,2023-04-21
+16,GreenField #016,EMEA,United Kingdom,2020-01-14
+17,GreenField #017,APAC,Japan,2020-11-22
+18,GreenField #018,APAC,Australia,2022-05-15
+19,GreenField #019,EMEA,United Kingdom,2021-07-23
+20,GreenField #020,NA,Canada,2021-03-16

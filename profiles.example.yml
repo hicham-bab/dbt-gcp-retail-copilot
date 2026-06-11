@@ -1,0 +1,21 @@
+# Copy to ~/.dbt/profiles.yml (or keep here and run with --profiles-dir .)
+# BigQuery connection for the GreenField Retail demo.
+#
+# Two common auth paths for a webinar:
+#   1. oauth  -> `gcloud auth application-default login` (fastest for live demo)
+#   2. service-account -> point keyfile at a JSON key
+#
+greenfield_retail:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth                       # or: service-account
+      project: your-gcp-project-id        # <-- set your GCP project
+      dataset: greenfield_dev             # base dataset; +schema appends _raw/_staging/etc
+      location: US                        # or EU, must match your datasets
+      threads: 8
+      priority: interactive
+      job_execution_timeout_seconds: 600
+      job_retries: 1
+      # keyfile: /path/to/service-account.json   # only if method: service-account

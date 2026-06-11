@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: mart_daily_sales
+    description: "Daily sales performance by channel: orders, units, revenue, and margin."
+    columns:
+      - name: order_date
+        data_tests:
+          - not_null
+      - name: gross_revenue
+        description: "Completed-order gross revenue for the day and channel, in dollars."
+
+  # NOTE: mart_customer_ltv is intentionally NOT documented here.
+  # During the webinar, dbt Copilot generates its descriptions and tests live.
+  # See DEMO_SCRIPT.md, Act 2.

@@ -1,0 +1,47 @@
+name: greenfield_retail
+version: 1.0.0
+profile: greenfield_retail
+
+require-dbt-version: [">=1.9.0"]
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# BigQuery: seeds land in a raw dataset; models split across staging / marts.
+seeds:
+  greenfield_retail:
+    +schema: raw
+    raw_products:
+      +column_types:
+        is_active: boolean
+    raw_customers:
+      +column_types:
+        home_store_id: int64
+
+models:
+  greenfield_retail:
+    +materialized: view
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: ephemeral
+    marts:
+      +schema: marts
+      +materialized: table
+      core:
+        +materialized: table
+      finance:
+        +materialized: table
+      marketing:
+        +materialized: table
+      inventory:
+        +materialized: table

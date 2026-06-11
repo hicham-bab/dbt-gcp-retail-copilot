@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: fct_inventory_daily
+    description: "Inventory snapshots enriched with product, category, and store attributes."
+    columns:
+      - name: units_available
+        description: "On-hand units minus reserved units."
+
+  - name: mart_inventory_health
+    description: "Latest inventory position per store/product with a stock-risk status."
+    columns:
+      - name: stock_status
+        description: "Risk bucket: stockout, low, healthy, or overstock."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["stockout", "low", "healthy", "overstock"]
