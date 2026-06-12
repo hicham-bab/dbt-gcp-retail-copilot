@@ -127,3 +127,19 @@ models:
         data_tests:
           - unique
           - not_null
+
+saved_queries:
+  - name: core_order_metrics
+    description: "Saved query for core order metrics."
+    label: Core Order Metrics
+    query_params:
+      metrics:
+        - total_revenue
+        - order_count
+        - average_order_value
+      group_by:
+        - TimeDimension('metric_time', 'day')
+    exports:
+      - name: core_order_metrics_export
+        config:
+          export_as: table
