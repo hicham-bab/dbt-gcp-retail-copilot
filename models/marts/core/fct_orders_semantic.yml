@@ -1,0 +1,14 @@
+version: 2
+
+metrics:
+  - name: weekly_revenue
+    label: "Weekly Revenue"
+    type: cumulative
+    input_metric: total_revenue
+    window: 1 week
+
+  - name: weekly_order_count
+    label: "Weekly Order Count"
+    type: cumulative
+    input_metric: order_count
+    window: 1 week
