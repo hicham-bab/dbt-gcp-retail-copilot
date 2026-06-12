@@ -46,12 +46,21 @@ models:
 
   - name: fct_orders
     description: "One row per order with line-item economics and payment outcomes."
+    semantic_model:
+      enabled: true
+    agg_time_dimension: order_date
     columns:
       - name: order_id
+        entity:
+          type: primary
+          name: order
         data_tests:
           - unique
           - not_null
       - name: customer_id
+        entity:
+          type: foreign
+          name: customer
         data_tests:
           - not_null
           - relationships:
@@ -59,13 +68,43 @@ models:
                 to: ref('dim_customers')
                 field: customer_id
       - name: store_id
+        entity:
+          type: foreign
+          name: store
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_stores')
                 field: store_id
+      - name: order_date
+        granularity: day
+        dimension:
+          type: time
+      - name: order_channel
+        dimension:
+          type: categorical
+          name: channel
+      - name: region
+        dimension:
+          type: categorical
       - name: gross_amount
         description: "Sum of gross line amounts on the order, in dollars."
+    metrics:
+      - name: total_revenue
+        label: "Total Revenue"
+        type: simple
+        agg: sum
+        expr: amount_paid
+      - name: order_count
+        label: "Order Count"
+        type: simple
+        agg: count
+        expr: 1
+      - name: average_order_value
+        label: "Average Order Value"
+        type: simple
+        agg: average
+        expr: amount_paid
 
   - name: fct_order_items
     description: "One row per order line item with product, cost, and margin."
@@ -88,3 +127,19 @@ models:
         data_tests:
           - unique
           - not_null
+
+saved_queries:
+  - name: core_order_metrics
+    description: "Saved query for core order metrics."
+    label: Core Order Metrics
+    query_params:
+      metrics:
+        - total_revenue
+        - order_count
+        - average_order_value
+      group_by:
+        - TimeDimension('metric_time', 'day')
+    exports:
+      - name: core_order_metrics_export
+        config:
+          export_as: table

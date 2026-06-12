@@ -4,6 +4,10 @@ with orders as (
 
 payments as (
     select * from {{ ref('int_payments_by_order') }}
+),
+
+stores as (
+    select store_id, region from {{ ref('dim_stores') }}
 )
 
 select
@@ -14,6 +18,7 @@ select
     orders.order_ts,
     orders.order_status,
     orders.order_channel,
+    stores.region,
     orders.is_completed,
     orders.item_count,
     orders.units,
@@ -25,3 +30,4 @@ select
     coalesce(payments.has_refund, false)  as has_refund
 from orders
 left join payments on orders.order_id = payments.order_id
+left join stores on orders.store_id = stores.store_id
