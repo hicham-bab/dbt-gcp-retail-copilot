@@ -56,7 +56,7 @@ models:
       - name: order_id
         entity:
           type: primary
-          name: order
+          name: orders
         data_tests:
           - unique
           - not_null
@@ -87,19 +87,22 @@ models:
         dimension:
           type: categorical
           name: channel
-      - name: gross_amount
-        description: "Sum of gross line amounts on the order, in dollars."
+      - name: region
+        dimension:
+          type: categorical
     metrics:
       - name: total_revenue
         label: "Total Revenue"
         type: simple
         agg: sum
         expr: amount_paid
+
       - name: order_count
         label: "Order Count"
         type: simple
         agg: count
         expr: 1
+
       - name: average_order_value
         label: "Average Order Value"
         type: simple
@@ -143,3 +146,4 @@ saved_queries:
       - name: core_order_metrics_export
         config:
           export_as: table
+
