@@ -16,7 +16,7 @@ Use this context as the default working style for this migration flow.
 - Reuse existing staging and intermediate models with `ref()` whenever possible.
 - Keep business logic faithful to the legacy implementation unless there is a clear reason to improve it.
 - Do not create new models if an existing model or semantic config can be extended cleanly.
-- Keep documentation and tests simple, useful, and credible for a live walkthrough.
+- Keep documentation and tests simple, useful, and credible for a live walkthrough. Only build them if asked explicitely.
 
 ## Semantic layer expectations
 - Extend the existing semantic layer configuration before introducing new semantic assets.
@@ -25,5 +25,5 @@ Use this context as the default working style for this migration flow.
 
 ## Validation expectations
 - Use the lightest check that gives confidence.
-- Avoid expensive builds during the live flow unless explicitly requested.
+- Avoid time-consuming builds during the live flow unless explicitly requested.
 - If something is not validated, say so plainly and move on.
