@@ -69,12 +69,40 @@ models:
 
   - name: fct_orders
     description: "One row per order with line-item economics and payment outcomes."
+    semantic_model:
+      enabled: true
+    agg_time_dimension: order_date
+    metrics:
+      - name: total_revenue
+        description: "Total gross revenue from orders."
+        label: Total Revenue
+        type: simple
+        agg: sum
+        expr: gross_amount
+      - name: order_count
+        description: "Count of orders."
+        label: Order Count
+        type: simple
+        agg: count
+        expr: 1
+      - name: average_order_value
+        description: "Average gross revenue per order."
+        label: Average Order Value
+        type: simple
+        agg: average
+        expr: gross_amount
     columns:
       - name: order_id
+        entity:
+          type: primary
+          name: order
         data_tests:
           - unique
           - not_null
       - name: customer_id
+        entity:
+          type: foreign
+          name: customer
         data_tests:
           - not_null
           - relationships:
@@ -82,6 +110,9 @@ models:
                 to: ref('dim_customers')
                 field: customer_id
       - name: store_id
+        entity:
+          type: foreign
+          name: store
         data_tests:
           - not_null
           - relationships:
@@ -89,9 +120,14 @@ models:
                 to: ref('dim_stores')
                 field: store_id
       - name: order_date
+        granularity: day
+        dimension:
+          type: time
         data_tests:
           - not_null
       - name: order_channel
+        dimension:
+          type: categorical
         data_tests:
           - accepted_values:
               arguments:
@@ -99,9 +135,13 @@ models:
               config:
                 severity: warn
       - name: region
+        dimension:
+          type: categorical
         data_tests:
           - not_null
       - name: order_status
+        dimension:
+          type: categorical
         data_tests:
           - not_null
       - name: gross_amount
@@ -171,4 +211,3 @@ saved_queries:
       - name: core_order_metrics_export
         config:
           export_as: table
-
