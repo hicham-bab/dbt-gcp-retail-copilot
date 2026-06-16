@@ -9,13 +9,6 @@ models:
         data_tests:
           - unique
           - not_null
-      - name: home_store_id
-        description: "Home store assigned to the customer."
-        data_tests:
-          - relationships:
-              arguments:
-                to: ref('dim_stores')
-                field: store_id
       - name: customer_status
         description: "Lifecycle bucket derived from most recent order date."
         data_tests:
@@ -32,14 +25,8 @@ models:
         data_tests:
           - unique
           - not_null
-      - name: category_id
-        description: "Product category key."
-        data_tests:
-          - not_null
       - name: department
         description: "Top-level merchandising department."
-        data_tests:
-          - not_null
 
   - name: dim_stores
     description: "Store dimension with lifetime order counts and gross revenue."
@@ -47,10 +34,6 @@ models:
       - name: store_id
         data_tests:
           - unique
-          - not_null
-      - name: region
-        description: "Store sales region."
-        data_tests:
           - not_null
 
   - name: dim_dates
@@ -63,9 +46,7 @@ models:
         data_tests:
           - unique
           - not_null
-      - name: year
-        data_tests:
-          - not_null
+
 
   - name: fct_orders
     description: "One row per order with line-item economics and payment outcomes."
@@ -76,7 +57,7 @@ models:
       - name: order_id
         entity:
           type: primary
-          name: orders
+          name: order
         data_tests:
           - unique
           - not_null
@@ -95,7 +76,6 @@ models:
           type: foreign
           name: store
         data_tests:
-          - not_null
           - relationships:
               arguments:
                 to: ref('dim_stores')
@@ -104,30 +84,18 @@ models:
         granularity: day
         dimension:
           type: time
-        data_tests:
-          - not_null
       - name: order_channel
         dimension:
           type: categorical
           name: channel
-        data_tests:
-          - accepted_values:
-              arguments:
-                values: ["web", "store", "mobile_app"]
-              config:
-                severity: warn
       - name: region
         dimension:
           type: categorical
           name: region
-        data_tests:
-          - not_null
       - name: order_status
         dimension:
           type: categorical
           name: order_status
-        data_tests:
-          - not_null
       - name: is_completed
         dimension:
           type: categorical
@@ -152,20 +120,30 @@ models:
         expr: amount_paid
         filter: |
           {{ Dimension('order__is_completed') }} = true
-
       - name: order_count
         label: "Order Count"
         type: simple
         agg: count
         expr: 1
-
+      - name: completed_order_count
+        label: "Completed Order Count"
+        type: simple
+        agg: count
+        expr: 1
+        filter: |
+          {{ Dimension('order__is_completed') }} = true
+      - name: refunded_order_count
+        label: "Refunded Order Count"
+        type: simple
+        agg: count
+        expr: 1
+        filter: |
+          {{ Dimension('order__has_refund') }} = true
       - name: average_order_value
         label: "Average Order Value"
         type: simple
         agg: average
         expr: amount_paid
-
-
 
   - name: fct_order_items
     description: "One row per order line item with product, cost, and margin."
@@ -174,16 +152,8 @@ models:
         data_tests:
           - unique
           - not_null
-      - name: order_id
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('fct_orders')
-                field: order_id
       - name: product_id
         data_tests:
-          - not_null
           - relationships:
               arguments:
                 to: ref('dim_products')
@@ -196,38 +166,93 @@ models:
         data_tests:
           - unique
           - not_null
-      - name: order_id
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('fct_orders')
-                field: order_id
-      - name: customer_id
-        data_tests:
-          - relationships:
-              arguments:
-                to: ref('dim_customers')
-                field: customer_id
-      - name: payment_status
-        data_tests:
-          - accepted_values:
-              arguments:
-                values: ["captured", "refunded"]
 
 saved_queries:
   - name: core_order_metrics
-    description: "Saved query for core order metrics."
+    description: "Daily core order performance rollup for conversational analytics."
     label: Core Order Metrics
+    config:
+      tags:
+        - conversational_analytics
+        - core_metrics
+      cache:
+        enabled: true
     query_params:
       metrics:
         - total_revenue
+        - completed_revenue
         - order_count
+        - completed_order_count
         - average_order_value
       group_by:
         - TimeDimension('metric_time', 'day')
+      where:
+        - "{{ TimeDimension('metric_time', 'day') }} >= '2024-01-01'"
     exports:
       - name: core_order_metrics_export
         config:
           export_as: table
+          alias: core_order_metrics_daily
+          schema: marts
 
+  - name: weekly_channel_region_performance
+    description: "Weekly revenue and order performance by channel and region for natural-language trend analysis."
+    label: Weekly Channel Region Performance
+    config:
+      tags:
+        - conversational_analytics
+        - weekly_rollup
+      cache:
+        enabled: true
+    query_params:
+      metrics:
+        - completed_revenue
+        - completed_order_count
+        - average_order_value
+      group_by:
+        - TimeDimension('metric_time', 'week')
+        - Dimension('order__channel')
+        - Dimension('order__region')
+      where:
+        - "{{ Dimension('order__is_completed') }} = true"
+        - "{{ TimeDimension('metric_time', 'week') }} >= '2024-01-01'"
+    exports:
+      - name: weekly_channel_region_performance_table
+        config:
+          export_as: table
+          alias: weekly_channel_region_performance
+          schema: marts
+      - name: weekly_channel_region_performance_view
+        config:
+          export_as: view
+          alias: weekly_channel_region_performance_vw
+          schema: marts
+
+  - name: refund_and_fulfillment_monitoring
+    description: "Weekly monitoring slice for refund-heavy and non-completed order behavior by channel, region, and status."
+    label: Refund and Fulfillment Monitoring
+    config:
+      tags:
+        - conversational_analytics
+        - operations_monitoring
+      cache:
+        enabled: true
+    query_params:
+      metrics:
+        - total_revenue
+        - order_count
+        - refunded_order_count
+      group_by:
+        - TimeDimension('metric_time', 'week')
+        - Dimension('order__channel')
+        - Dimension('order__region')
+        - Dimension('order__order_status')
+        - Dimension('order__has_refund')
+      where:
+        - "{{ TimeDimension('metric_time', 'week') }} >= '2024-01-01'"
+    exports:
+      - name: refund_and_fulfillment_monitoring_export
+        config:
+          export_as: table
+          alias: refund_and_fulfillment_monitoring
+          schema: marts

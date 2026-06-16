@@ -2,7 +2,7 @@
 --
 -- Run AFTER you have (a) executed the legacy proc into analytics.customer_ltv
 -- and (b) built mart_customer_ltv with dbt. Compile with:
---   dbt compile -s validate_ltv_migration
+--   dbt compile --select validate_ltv_migration
 -- then run the compiled SQL in BigQuery. Zero rows = perfect parity.
 with dbt_version as (
     select customer_id, total_orders, lifetime_revenue, ltv_segment
