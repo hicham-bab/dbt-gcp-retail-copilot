@@ -10,3 +10,21 @@ models:
       - name: gross_revenue
         description: "Completed-order gross revenue for the day and channel, in dollars."
 
+  - name: mart_customer_ltv
+    description: "Customer-level lifetime value summary derived from completed orders, including annualized value, LTV segment, and lifecycle stage."
+    columns:
+      - name: customer_id
+        data_tests:
+          - not_null
+          - unique
+      - name: total_orders
+        data_tests:
+          - not_null
+      - name: lifetime_revenue
+        description: "Completed-order lifetime revenue in dollars."
+      - name: lifetime_margin
+        description: "Completed-order lifetime margin in dollars."
+      - name: ltv_segment
+        description: "Revenue-based customer segment using the legacy threshold bands."
+      - name: lifecycle_stage
+        description: "Recency-based customer lifecycle classification using the legacy threshold bands."
