@@ -72,11 +72,30 @@ models:
     semantic_model:
       enabled: true
     agg_time_dimension: order_date
+    metrics:
+      - name: total_revenue
+        description: "Total gross revenue from orders."
+        label: Total Revenue
+        type: simple
+        agg: sum
+        expr: gross_amount
+      - name: order_count
+        description: "Count of orders."
+        label: Order Count
+        type: simple
+        agg: count
+        expr: 1
+      - name: average_order_value
+        description: "Average gross revenue per order."
+        label: Average Order Value
+        type: simple
+        agg: average
+        expr: gross_amount
     columns:
       - name: order_id
         entity:
           type: primary
-          name: orders
+          name: order
         data_tests:
           - unique
           - not_null
@@ -109,7 +128,6 @@ models:
       - name: order_channel
         dimension:
           type: categorical
-          name: channel
         data_tests:
           - accepted_values:
               arguments:
@@ -119,55 +137,18 @@ models:
       - name: region
         dimension:
           type: categorical
-          name: region
         data_tests:
           - not_null
       - name: order_status
         dimension:
           type: categorical
-          name: order_status
         data_tests:
           - not_null
-      - name: is_completed
-        dimension:
-          type: categorical
-          name: is_completed
-      - name: has_refund
-        dimension:
-          type: categorical
-          name: has_refund
-
       - name: gross_amount
         description: "Sum of gross line amounts on the order, in dollars."
-    metrics:
-      - name: total_revenue
-        label: "Total Revenue"
-        type: simple
-        agg: sum
-        expr: amount_paid
-      - name: completed_revenue
-        label: "Completed Revenue"
-        type: simple
-        agg: sum
-        expr: amount_paid
-        filter: |
-          {{ Dimension('order__is_completed') }} = true
-
-      - name: order_count
-        label: "Order Count"
-        type: simple
-        agg: count
-        expr: 1
-
-      - name: average_order_value
-        label: "Average Order Value"
-        type: simple
-        agg: average
-        expr: amount_paid
-
-
 
   - name: fct_order_items
+
     description: "One row per order line item with product, cost, and margin."
     columns:
       - name: order_item_id
@@ -230,4 +211,3 @@ saved_queries:
       - name: core_order_metrics_export
         config:
           export_as: table
-

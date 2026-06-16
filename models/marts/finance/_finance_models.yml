@@ -10,6 +10,3 @@ models:
       - name: gross_revenue
         description: "Completed-order gross revenue for the day and channel, in dollars."
 
-  # NOTE: mart_customer_ltv is intentionally NOT documented here.
-  # During the webinar, dbt Copilot generates its descriptions and tests live.
-  # See DEMO_SCRIPT.md, Act 2.
