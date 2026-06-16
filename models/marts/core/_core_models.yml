@@ -79,6 +79,12 @@ models:
         type: simple
         agg: sum
         expr: gross_amount
+      - name: total_margin
+        description: "Total gross margin from orders."
+        label: Total Margin
+        type: simple
+        agg: sum
+        expr: total_margin
       - name: order_count
         description: "Count of orders."
         label: Order Count
@@ -91,6 +97,30 @@ models:
         type: simple
         agg: average
         expr: gross_amount
+      - name: refunded_order_count
+        description: "Count of orders with at least one refund."
+        label: Refunded Order Count
+        type: simple
+        agg: sum_boolean
+        expr: has_refund
+      - name: completed_order_count
+        description: "Count of completed orders."
+        label: Completed Order Count
+        type: simple
+        agg: sum_boolean
+        expr: is_completed
+      - name: refund_rate
+        description: "Share of orders that had a refund."
+        label: Refund Rate
+        type: ratio
+        numerator: refunded_order_count
+        denominator: order_count
+      - name: fulfillment_rate
+        description: "Share of orders in completed status."
+        label: Fulfillment Rate
+        type: ratio
+        numerator: completed_order_count
+        denominator: order_count
     columns:
       - name: order_id
         entity:
@@ -144,8 +174,20 @@ models:
           type: categorical
         data_tests:
           - not_null
+      - name: is_completed
+        dimension:
+          type: categorical
+        data_tests:
+          - not_null
+      - name: has_refund
+        dimension:
+          type: categorical
+        data_tests:
+          - not_null
       - name: gross_amount
         description: "Sum of gross line amounts on the order, in dollars."
+      - name: total_margin
+        description: "Gross margin on the order, in dollars."
 
   - name: fct_order_items
 
@@ -197,17 +239,62 @@ models:
                 values: ["captured", "refunded"]
 
 saved_queries:
-  - name: core_order_metrics
-    description: "Saved query for core order metrics."
-    label: Core Order Metrics
+  - name: core_order_metrics_daily
+    description: "Daily core order metrics for finance and operations reporting."
+    label: Core Order Metrics Daily
     query_params:
       metrics:
         - total_revenue
+        - total_margin
         - order_count
         - average_order_value
       group_by:
         - TimeDimension('metric_time', 'day')
     exports:
-      - name: core_order_metrics_export
+      - name: core_order_metrics_daily_export
         config:
           export_as: table
+          schema: marts
+          alias: core_order_metrics_daily
+
+  - name: weekly_channel_region_performance
+    description: "Weekly performance by sales channel and region."
+    label: Weekly Channel Region Performance
+    query_params:
+      metrics:
+        - total_revenue
+        - total_margin
+        - order_count
+        - average_order_value
+      group_by:
+        - TimeDimension('metric_time', 'week')
+        - Dimension('order__order_channel')
+        - Dimension('order__region')
+    exports:
+      - name: weekly_channel_region_performance_export
+        config:
+          export_as: table
+          schema: marts
+          alias: weekly_channel_region_performance
+
+  - name: refund_and_fulfillment_monitoring
+    description: "Daily monitoring view of refunds and fulfillment outcomes by channel and order status."
+    label: Refund And Fulfillment Monitoring
+    query_params:
+      metrics:
+        - order_count
+        - refunded_order_count
+        - completed_order_count
+        - refund_rate
+        - fulfillment_rate
+      group_by:
+        - TimeDimension('metric_time', 'day')
+        - Dimension('order__order_channel')
+        - Dimension('order__order_status')
+        - Dimension('order__has_refund')
+    exports:
+      - name: refund_and_fulfillment_monitoring_export
+        config:
+          export_as: table
+          schema: marts
+          alias: refund_and_fulfillment_monitoring
