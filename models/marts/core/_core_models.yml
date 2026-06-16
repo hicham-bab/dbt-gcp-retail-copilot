@@ -91,28 +91,7 @@ models:
         type: simple
         agg: average
         expr: gross_amount
-      - name: revenue
-        description: "Gross revenue from completed orders only."
-        label: Revenue
-        type: simple
-        agg: sum
-        expr: gross_amount
-        filter: |
-          {{ Dimension('order__order_status') }} = 'completed'
-      - name: completed_orders
-        description: "Count of completed orders."
-        label: Completed Orders
-        type: simple
-        agg: sum
-        expr: case when is_completed then 1 else 0 end
-      - name: aov
-        description: "Average order value for completed orders only."
-        label: AOV
-        type: ratio
-        numerator: revenue
-        denominator: completed_orders
     columns:
-
       - name: order_id
         entity:
           type: primary
@@ -190,38 +169,15 @@ models:
               arguments:
                 to: ref('dim_products')
                 field: product_id
+
   - name: fct_payments
     description: "One row per payment with order and customer keys."
-    semantic_model:
-      enabled: true
-    agg_time_dimension: payment_date
-    metrics:
-      - name: refund_amount
-        description: "Amount refunded to customers."
-        label: Refund Amount
-        type: simple
-        agg: sum
-        expr: amount
-        filter: |
-          {{ Dimension('payment__payment_status') }} = 'refunded'
-      - name: refund_count
-        description: "Count of refunded payments."
-        label: Refund Count
-        type: simple
-        agg: sum
-        expr: case when is_refunded then 1 else 0 end
     columns:
       - name: payment_id
-        entity:
-          type: primary
-          name: payment
         data_tests:
           - unique
           - not_null
       - name: order_id
-        entity:
-          type: foreign
-          name: order
         data_tests:
           - not_null
           - relationships:
@@ -229,31 +185,18 @@ models:
                 to: ref('fct_orders')
                 field: order_id
       - name: customer_id
-        entity:
-          type: foreign
-          name: customer
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_customers')
                 field: customer_id
-      - name: payment_date
-        granularity: day
-        dimension:
-          type: time
-      - name: payment_method
-        dimension:
-          type: categorical
       - name: payment_status
-        dimension:
-          type: categorical
         data_tests:
           - accepted_values:
               arguments:
                 values: ["captured", "refunded"]
 
 saved_queries:
-
   - name: core_order_metrics
     description: "Saved query for core order metrics."
     label: Core Order Metrics
@@ -268,41 +211,3 @@ saved_queries:
       - name: core_order_metrics_export
         config:
           export_as: table
-
-  - name: commercial_performance_daily
-    description: "Daily commercial performance with revenue, orders, completed orders, AOV, and refunds."
-    label: Commercial Performance Daily
-    query_params:
-      metrics:
-        - revenue
-        - order_count
-        - completed_orders
-        - aov
-        - refund_amount
-      group_by:
-        - TimeDimension('metric_time', 'day')
-
-  - name: commercial_performance_by_channel
-    description: "Commercial performance by day, channel, and region."
-    label: Commercial Performance by Channel
-    query_params:
-      metrics:
-        - revenue
-        - order_count
-        - completed_orders
-        - aov
-      group_by:
-        - TimeDimension('metric_time', 'day')
-        - Dimension('order__order_channel')
-        - Dimension('order__region')
-
-  - name: refunds_daily
-    description: "Daily refunded amount and refunded payment count."
-    label: Refunds Daily
-    query_params:
-      metrics:
-        - refund_amount
-        - refund_count
-      group_by:
-        - TimeDimension('metric_time', 'day')
-        - Dimension('order__payment_method')
