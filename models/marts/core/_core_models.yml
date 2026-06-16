@@ -9,6 +9,13 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: home_store_id
+        description: "Home store assigned to the customer."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
       - name: customer_status
         description: "Lifecycle bucket derived from most recent order date."
         data_tests:
@@ -25,8 +32,14 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: category_id
+        description: "Product category key."
+        data_tests:
+          - not_null
       - name: department
         description: "Top-level merchandising department."
+        data_tests:
+          - not_null
 
   - name: dim_stores
     description: "Store dimension with lifetime order counts and gross revenue."
@@ -34,6 +47,10 @@ models:
       - name: store_id
         data_tests:
           - unique
+          - not_null
+      - name: region
+        description: "Store sales region."
+        data_tests:
           - not_null
 
   - name: dim_dates
@@ -45,6 +62,9 @@ models:
         granularity: day
         data_tests:
           - unique
+          - not_null
+      - name: year
+        data_tests:
           - not_null
 
   - name: fct_orders
@@ -75,6 +95,7 @@ models:
           type: foreign
           name: store
         data_tests:
+          - not_null
           - relationships:
               arguments:
                 to: ref('dim_stores')
@@ -83,19 +104,54 @@ models:
         granularity: day
         dimension:
           type: time
+        data_tests:
+          - not_null
       - name: order_channel
         dimension:
           type: categorical
           name: channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["web", "store", "mobile_app"]
+              config:
+                severity: warn
       - name: region
         dimension:
           type: categorical
+          name: region
+        data_tests:
+          - not_null
+      - name: order_status
+        dimension:
+          type: categorical
+          name: order_status
+        data_tests:
+          - not_null
+      - name: is_completed
+        dimension:
+          type: categorical
+          name: is_completed
+      - name: has_refund
+        dimension:
+          type: categorical
+          name: has_refund
+
+      - name: gross_amount
+        description: "Sum of gross line amounts on the order, in dollars."
     metrics:
       - name: total_revenue
         label: "Total Revenue"
         type: simple
         agg: sum
         expr: amount_paid
+      - name: completed_revenue
+        label: "Completed Revenue"
+        type: simple
+        agg: sum
+        expr: amount_paid
+        filter: |
+          {{ Dimension('order__is_completed') }} = true
 
       - name: order_count
         label: "Order Count"
@@ -109,6 +165,8 @@ models:
         agg: average
         expr: amount_paid
 
+
+
   - name: fct_order_items
     description: "One row per order line item with product, cost, and margin."
     columns:
@@ -116,8 +174,16 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
       - name: product_id
         data_tests:
+          - not_null
           - relationships:
               arguments:
                 to: ref('dim_products')
@@ -130,6 +196,24 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: customer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: payment_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["captured", "refunded"]
 
 saved_queries:
   - name: core_order_metrics
